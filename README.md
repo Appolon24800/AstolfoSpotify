@@ -4,11 +4,7 @@
 ## How to use?: 
 - Download the file ```backend.exe```, you can probably rewrite it for Linux / MacOS but Astolfo client only support windows.
 - Run it and open the ```.env``` file
-- Now, create a spotify application [[here]](https://developer.spotify.com/dashboard)
-- Login into your spotify account and click "Create an app"
-- Set "Redirect URI" to "http://localhost:3000/callback/"
-- Save everything and copy the Client ID
-- Click on "View client secret" and now you can copy the Client Secret
+- Now, for the configuration of ```.env```, check this [[How to setup the spotify application?]]()
 
 ## I don't want to use the compiled version:
 - If you don't want to use the compiled build, you can still use the source.
@@ -28,15 +24,23 @@
 ## I want to use this script on another client:
 - You can rewrite the script for Moon client with [Moon client scripting api](https://docs.moonclient.xyz/)
 - You can rewrite the script for Rise client with [Rise client scripting api](https://riseclients-organization.gitbook.io/rise-6-scripting-api/api-documentation/scripting-metadata)
-- 
+
 ## Commands:
--  @pause (soon)
--  @skip (soon)
--  @trackurl --> send the spotify url of the song in the chat
--  @artisturl --> send the spotify url of the artist in the chat
--  @song --> send ```I am listening to "track" by "artistsName"```
--  @artist --> send the artist name in the chat
--  @track --> send the song name in the chat
+- @pause (soon)
+- @skip (soon)
+- @trackurl --> send the spotify url of the song in the chat
+- @artisturl --> send the spotify url of the artist in the chat
+- @song --> send ```I am listening to "track" by "artistsName"```
+- @artist --> send the artist name in the chat
+- @track --> send the song name in the chat
+
+## How to setup the spotify application?:
+- You will need to create a spotify application [[here]](https://developer.spotify.com/dashboard)
+- Login into your spotify account and click "Create an app"
+- Set "Redirect URI" to "http://localhost:3000/callback/"
+- Save everything and copy the Client ID
+- Click on "View client secret" and now you can copy the Client Secret
+![qz5k6lbu](https://github.com/Appolon24800/AstolfoSpotify/assets/93398824/bb552429-2dc1-485d-a153-675e822e84bb)
 
 ## I used:
 - [[PyInstaller]](https://pyinstaller.org/) *to compile the file*
