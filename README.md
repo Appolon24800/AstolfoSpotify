@@ -1,4 +1,4 @@
-# AstolfoSpotify
+# Astolfo spotify player
 ### A simple spotify player for [[Astolfo client]](https://astolfo.lgbt) in lua with [[zarscript2]](https://zarzel.gitbook.io/) and [[Flask]](https://flask.palletsprojects.com/)
 
 ## How to use?: 
