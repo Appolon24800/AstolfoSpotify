@@ -4,7 +4,7 @@
 ## How to use?: 
 - Download the file ```backend.exe```, you can probably rewrite it for Linux / MacOS but Astolfo client only support windows.
 - Run it and open the ```.env``` file
-- Now, for the configuration of ```.env```, check this [[How to setup the spotify application?]]()
+- Now, for the configuration of ```.env```, check this [[How to setup the spotify application?]](https://github.com/Appolon24800/AstolfoSpotify#how-to-setup-the-spotify-application)
 
 ## I don't want to use the compiled version:
 - If you don't want to use the compiled build, you can still use the source.
