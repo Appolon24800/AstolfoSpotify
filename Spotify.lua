@@ -140,6 +140,7 @@ function fetchapi()
             if module_manager.option(name, "debug") then print('Data fetched') end
 
         end
+
     })  
 end
 
