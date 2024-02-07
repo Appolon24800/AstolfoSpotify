@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import re
+import webbrowser
 
 
 import dotenv                                                 # pip install dotenv_python
@@ -15,8 +16,8 @@ if not os.path.exists('.env'):
         f.write("""# To get SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET\n# You need to create an application here\n# https://developer.spotify.com/dashboard\n# login into your spotify account\n# click "Create app"\n# and set the "Redirect URI" to "http://localhost:3000/callback/"\n# click "save"\n# return to the dashboard and click on your app\n# Click on settings\n# You can already see the "Client ID"\n# Click on "View client secret" and its your Client Secret\n\nSPOTIFY_CLIENT_ID= Client ID\nSPOTIFY_CLIENT_SECRET=Client SECRET\nSPOTIFY_CLIENT_URI=http://localhost:3000/callback/\nSPOTIFY_SCOPE=user-read-playback-state user-read-currently-playing\nBACKEND_FLASK_PORT=3000""")
 
 dotenv.load_dotenv()
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
-os.system("cls")
+logging.getLogger('werkzeug').disabled = True
+logging.captureWarnings(True)
 
 oldtrack = ""
 oldmessage = ""
@@ -30,6 +31,7 @@ FLASK_PORT = os.environ.get("BACKEND_FLASK_PORT")
 SCOPE = os.environ.get("SPOTIFY_SCOPE")
 
 if not CLIENT_ID or not CLIENT_SECRET or not REDIRECT_URI or len(CLIENT_ID) != 32 or len(CLIENT_SECRET) != 32 or not "/callback/" in REDIRECT_URI:
+    webbrowser.open_new_tab("https://developer.spotify.com/dashboard")
     print("Invalid Spotify credentials. Check the '.env' file")
     input()
     exit()
@@ -57,18 +59,17 @@ def getinfo():
 async def home():
     return "<a>Astolfo python Backend for 'chat_bridge' and 'spotify'</a> <br> <a href='https://appolon.dev'>Made by appolon</a>"
 
-@app.route("/login")
-@app.route("/login/")
-async def login():
-    return redirect(sp_oauth.get_authorize_url())
-
 @app.route("/callback")
 @app.route("/callback/")
 async def callback():
     code = request.args.get("code", None)
-    info = sp_oauth.get_cached_token(code)
+    try:
+        info = sp_oauth.get_access_token(code, as_dict=True)
+    except Exception as e:
+        return str(e)
 
     if not code or not info:
+        webbrowser.open_new_tab(sp_oauth.get_authorize_url())
         return
     
     saveinfo(info)
@@ -80,7 +81,8 @@ async def spotify():
     global oldtrack
     info = getinfo()
     if not info or "access_token" not in info:
-        return redirect(url_for("login"))
+        webbrowser.open_new_tab(sp_oauth.get_authorize_url())
+        return ""
 
     access_token = info["access_token"]
     sp = Spotify(auth=access_token)
@@ -160,3 +162,4 @@ async def mc_chat():
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=FLASK_PORT)
+    
