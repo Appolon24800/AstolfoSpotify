@@ -1,4 +1,5 @@
 local name = 'Spotify'
+local prefix = ">"
 local artistsId, artistsName, artistsUrl
 local duration, playing, progress
 local track, trackId, trackImage
@@ -9,15 +10,56 @@ local url
 local lastfetch = 0
 local lasttexttruncated = client.time()
 local lastscreenrender = client.time()
-
-
-local data_test = '{"Artists":[{"ID":"5K4W6rqBFWDnAN6FQUkS6x","Name":"Kanye West","Url":"https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x"}],"Device":{"Name":"APPOLON","Type":"Computer","Volume":100},"Duration":243440,"Playing":true,"Progress":21431,"Track":"I Wonder","TrackID":"7rbECVPkY5UODxoOUVKZnA","TrackImage":"https://i.scdn.co/image/ab67616d0000b27326f7f19c7f0381e56156c94a"}'
+local dummydata = '{"Artists":[{"ID":"5K4W6rqBFWDnAN6FQUkS6x","Name":"Kanye West","Url":"https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x"}],"Device":{"Name":"APPOLON","Type":"Computer","Volume":100},"Duration":243440,"Playing":true,"Progress":21431,"Track":"I Wonder","TrackID":"7rbECVPkY5UODxoOUVKZnA","TrackImage":"https://i.scdn.co/image/ab67616d0000b27326f7f19c7f0381e56156c94a"}'
 local BackendURL_DEV = "http://192.168.0.29:8080/api/index/spotify" 
 local BackendURL_HOST = "http://localhost:3000/spotify"
 local testing = false
 
 function print(str)
-    client.print('\194\1672[\194\167aSpotify\194\1672]\194\167r ' .. tostring(str))
+    client.print('\194\1672[\194\167aSpotify\194\1672]\194\167r ' .. str)
+end
+
+function handledata(data)
+    lastfetch = client.time()
+    if not data then
+        print('The backend returned nothing')
+        player.message(".spotify")
+    end
+
+    if data == '{"Track":null}' then
+        print('You are listening to nothing')
+        player.message(".spotify")
+    end
+
+    if data == 'Impossible to fetch informations from spotify' then
+        print('Impossible to fetch informations from spotify')
+        player.message(".spotify")
+    end
+
+    elapsedtime = 0
+    if string.find(data, "<title>429 Too Many Requests</title>") then
+        if module_manager.option(name, "debug") then print('Rate limited') end
+        lastfetch = client.time() + 6000
+        return
+    end
+    
+    oldtrack = track
+    artistsId, artistsName, artistsUrl = data:match('"ID":"(.-)","Name":"(.-)","Url":"(.-)"')
+    duration, playing, progress = data:match('"Duration":(%d+),"Playing":([^,]+),"Progress":(%d+)')
+    track, trackId, trackImage = data:match('"Track":"(.-)","TrackID":"(.-)","TrackImage":"(.-)"')
+    
+    playing = playing == "true" and true or false
+
+    if track ~= oldtrack or not track then
+        truncatedtext = track .. "      "
+
+        if module_manager.option(name, "print (Print informations)") then 
+            print("Now listening to \194\167l" .. track .. "\194\167r by \194\167l" .. artistsName) 
+        end
+
+    end
+    
+    if module_manager.option(name, "debug") then print('Data fetched') end
 end
 
 function fiximagecolor()
@@ -39,7 +81,7 @@ function fiximagecolor()
     end
 end
 
-function UnicodeDecode(str)
+function UnicodeDecode(str) --is it chinese?
     return (str:gsub("\\u(%x%x%x%x)", function (unicode)
         local codepoint = tonumber(unicode, 16)
         if codepoint <= 0x7F then
@@ -56,7 +98,8 @@ function UnicodeDecode(str)
         else
             return string.char(0xEF, 0xBF, 0xBD)
         end
-    end))
+    end):gsub("\\", ""))
+
 end
 
 function fetchapi()
@@ -68,24 +111,7 @@ function fetchapi()
     end
 
     if testing then
-        data = UnicodeDecode(data_test)
-
-        oldtrack = track
-        artistsId, artistsName, artistsUrl = data:match('"ID":"(.-)","Name":"(.-)","Url":"(.-)"')
-        duration, playing, progress = data:match('"Duration":(%d+),"Playing":([^,]+),"Progress":(%d+)')
-        track, trackId, trackImage = data:match('"Track":"(.-)","TrackID":"(.-)","TrackImage":"(.-)"')
-        
-        playing = playing == "true" and true or false
-
-        if track ~= oldtrack or not track then
-            truncatedtext = track .. "      "
-
-            if module_manager.option(name, "print (Print informations)") then 
-                print("Now listening to \194\167l" .. track .. "\194\167r by \194\167l" .. artistsName) 
-            end
-
-        end
-
+        handledata(UnicodeDecode(dummydata))
         return
     end
 
@@ -93,54 +119,10 @@ function fetchapi()
         return
     end
 
-    lastfetch = client.time()
-
     http.get_async(url, {
         run = function(text)
-            data = UnicodeDecode(text)
-
-            if not data then
-                print('The backend returned nothing')
-                player.message(".spotify")
-            end
-
-            if data == '{"Track":null}' then
-                print('You are listening to nothing')
-                player.message(".spotify")
-            end
-
-            if data == 'Impossible to fetch informations from spotify' then
-                print('Impossible to fetch informations from spotify')
-                player.message(".spotify")
-            end
-
-            elapsedtime = 0
-            if string.find(data, "<title>429 Too Many Requests</title>") then
-                if module_manager.option(name, "debug") then print('Rate limited') end
-                lastfetch = client.time() + 60
-                return
-            end
-            
-            oldtrack = track
-            artistsId, artistsName, artistsUrl = data:match('"ID":"(.-)","Name":"(.-)","Url":"(.-)"')
-            duration, playing, progress = data:match('"Duration":(%d+),"Playing":([^,]+),"Progress":(%d+)')
-            track, trackId, trackImage = data:match('"Track":"(.-)","TrackID":"(.-)","TrackImage":"(.-)"')
-            
-            playing = playing == "true" and true or false
-
-            if track ~= oldtrack or not track then
-                truncatedtext = track .. "      "
-
-                if module_manager.option(name, "print (Print informations)") then 
-                    print("Now listening to \194\167l" .. track .. "\194\167r by \194\167l" .. artistsName) 
-                end
-
-            end
-            
-            if module_manager.option(name, "debug") then print('Data fetched') end
-
+            handledata(UnicodeDecode(text))
         end
-
     })  
 end
 
@@ -219,30 +201,53 @@ local spotify = {
         if module_manager.option(name, "\194\1676Spotify overlay by Appolon") then module_manager.set_option(name, "\194\1676Spotify overlay by Appolon", false) end
 
         if not e.message then return e end
-        if not module_manager.option(name, "chat (Commands like @song)") then return e end
-        if string.sub(e.message, 1, 1) ~= "@" then return e end
+        if not module_manager.option(name, "chat (Commands like " .. prefix .. "song)") then return e end
+        if string.sub(e.message, 1, 1) ~= prefix then return e end
         
-        local command = e.message:lower()
+        local command = string.gsub(e.message:lower(), "%s", ""):gsub("[^a-z]", "")
 
+        if command == 'pause' then
+            if playing then playing = false else playing = true end
+            print("Paused " .. track)
+            http.get_async(url .. "/pause", { run = function(text) end })
+        
+        elseif command == 'skip' then
+            print("Skiped " .. track)
+            http.get_async(url .. "/skip", { run = function(text) end })
+            
+        elseif command == 'rewind' then
+            http.get_async(url .. "/rewind", { run = function(text) end })
 
-        if string.find(command, '@pause') then
-            -- url .. "/pause"
-            print("Pause command is planned")
-        elseif string.find(command, '@skip') then
-            -- url .. "/skip"
-            print("Skip command is planned")
-        elseif string.find(command, '@trackurl') then
+        elseif command == 'trackurl' then
             player.message("https://open.spotify.com/track/" .. trackId)
-        elseif string.find(command, '@artisturl') then
+
+        elseif command == 'artisturl' then
             player.message("https://open.spotify.com/artist/" .. artistsId)
-        elseif string.find(command, '@track') then
+
+        elseif command == 'track' then
             player.message(track)
-        elseif string.find(command, '@song') then
+
+        elseif command == 'song' then
             player.message("I am listening to \"" .. track .. "\" by " .. artistsName)
-        elseif string.find(command, '@artist') then
+
+        elseif command == 'artist' then
             player.message(artistsName)
+        
+        elseif command =='help' then
+            client.print('      ')
+            print('      ')
+            print('   \194\167aSpotify script\194\167r - \194\1676by appolon\194\167r   ')
+            print('      ')
+            print('\194\1672' .. prefix .. '\194\167apause\194\167f: Pause the current music')
+            print('\194\1672' .. prefix .. '\194\167askip\194\167f: Skip the current music')
+            print('\194\1672' .. prefix .. '\194\167arewind\194\167f: Rewind the current track to the beginning')
+            print('\194\1672' .. prefix .. '\194\167atrack\194\167f: Send the track name in the chat')
+            print('\194\1672' .. prefix .. '\194\167atrackurl\194\167f: Music\'s spotify link')
+            print('\194\1672' .. prefix .. '\194\167asong\194\167f: I am listening to ... by ...')
+            print('\194\1672' .. prefix .. '\194\167aartist\194\167f: Send the artist name in the chat')
+            print('\194\1672' .. prefix .. '\194\167aartisturl\194\167f: Spotify artist\'s link')
         else
-            print('Invalid command')
+            print('Unknown command. Try "' .. prefix .. 'help" for help')
         end
 
         e.cancel = true
@@ -251,7 +256,7 @@ local spotify = {
 
     on_render_screen = function(e)
 
-        if client.time() - lastfetch >= 10000 then
+        if client.time() - lastfetch >= 2500 then
             fetchapi()
         end
 
@@ -321,7 +326,7 @@ module_manager.register_boolean(name, "\194\1676Spotify overlay by Appolon", fal
 module_manager.register_boolean(name, "", false)
 module_manager.register_boolean(name, "\194\1677General", false)
 module_manager.register_boolean(name, "print (Print informations)", true)
-module_manager.register_boolean(name, "chat (Commands like @song)", true)
+module_manager.register_boolean(name, "chat (Commands like " .. prefix .. "song)", true)
 module_manager.register_boolean(name, "image (Show the album)", false)
 module_manager.register_boolean(name, " ", false)
 module_manager.register_boolean(name, "\194\1677Text", false)
