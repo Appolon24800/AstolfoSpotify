@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import re
+import webbrowser
 
 
 import dotenv  # pip install dotenv_python
@@ -55,6 +56,7 @@ if (
     or len(CLIENT_SECRET) != 32
     or not "/callback/" in REDIRECT_URI
 ):
+    input()
     raise ValueError("Invalid Spotify credentials. Check the '.env' file")
 
 sp_oauth = oauth2.SpotifyOAuth(
@@ -73,13 +75,13 @@ def getinfo():
             return json.load(f)
     except FileNotFoundError:
         saveinfo({})
+        webbrowser.open_new_tab(url_for("login"))
         return {}
 
 
 @app.route("/")
 async def home():
     return "<a>Astolfo python Backend for 'chat_bridge' and 'spotify'</a> <br> <a href='https://appolon.dev'>Made by appolon</a>"
-
 
 @app.route("/login")
 @app.route("/login/")
@@ -147,6 +149,8 @@ async def spotify_skip():
 
     sp.next_track()
 
+    return ""
+
 
 @app.route("/spotify/pause")
 @app.route("/spotify/pause/")
@@ -176,6 +180,8 @@ async def spotify_pause():
         sp.pause_playback()
     else:
         sp.start_playback()
+
+    return ""
 
 
 @app.route("/spotify")
