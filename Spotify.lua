@@ -1,5 +1,5 @@
 local name = 'Spotify'
-local prefix = ">"
+local prefix = "@"
 local artistsId, artistsName, artistsUrl
 local duration, playing, progress
 local track, trackId, trackImage
@@ -208,11 +208,15 @@ local spotify = {
 
         if command == 'pause' then
             if playing then playing = false else playing = true end
-            print("Paused " .. track)
+            if track then
+                print("Paused " .. track)
+            end
             http.get_async(url .. "/pause", { run = function(text) end })
         
         elseif command == 'skip' then
-            print("Skiped " .. track)
+            if track then
+                print("Skiped " .. track)
+            end
             http.get_async(url .. "/skip", { run = function(text) end })
             
         elseif command == 'rewind' then
