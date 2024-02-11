@@ -40,6 +40,7 @@
 - Set "Redirect URI" to "http://localhost:3000/callback/"
 - Save everything and copy the Client ID
 - Click on "View client secret" and now you can copy the Client Secret
+- **REMEMBER THAT** anyone that have access to this file can skip, pause and have access to your name / email address so keep it private
 ![qz5k6lbu](https://github.com/Appolon24800/AstolfoSpotify/assets/93398824/bb552429-2dc1-485d-a153-675e822e84bb)
 
 ## I used:
