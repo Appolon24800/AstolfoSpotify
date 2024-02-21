@@ -3,8 +3,7 @@ import os
 import json
 import logging
 import re
-import webbrowser
-
+import urllib.request
 
 import dotenv  # pip install dotenv_python
 from flask import Flask, redirect, request, url_for, jsonify  # pip install flask[async]
@@ -24,6 +23,9 @@ if not os.path.exists(".env"):
             "# Click on settings\n"
             '# You can already see the "Client ID"\n'
             '# Click on "View client secret" and its your Client Secret\n'
+            '\n'
+            '# If you are lazy, contact me and I will give you my application creds\n'
+            '# You can contact me on my website with the "Want to send me a message?" text box\n'
             "\n"
             "SPOTIFY_CLIENT_ID = Client ID\n"
             "SPOTIFY_CLIENT_SECRET =Client SECRET\n"
@@ -31,6 +33,12 @@ if not os.path.exists(".env"):
             "SPOTIFY_SCOPE = user-read-playback-state user-read-currently-playing user-modify-playback-state app-remote-control\n"
             "BACKEND_FLASK_PORT = 3000"
         )
+
+
+if not os.path.exists(rf"C:\Users\zakar\AppData\Roaming\astolfo\scripts\Spotify.lua"):
+    with open(rf"C:\Users\zakar\AppData\Roaming\astolfo\scripts\Spotify.lua", "w+") as f:
+        with urllib.request.urlopen("https://raw.githubusercontent.com/Appolon24800/AstolfoSpotify/main/Spotify.lua") as content:
+            f.write(content.read())
 
 dotenv.load_dotenv()
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
@@ -73,9 +81,8 @@ def getinfo():
     try:
         with open(".cache", "r+") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except:
         saveinfo({})
-        webbrowser.open_new_tab(url_for("login"))
         return {}
 
 
@@ -123,6 +130,8 @@ async def spotify_rewind():
         sp = Spotify(auth=info["access_token"])
 
     sp.previous_track()
+
+    return ""
 
 
 @app.route("/spotify/skip")
